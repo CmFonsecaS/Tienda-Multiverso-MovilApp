@@ -1,28 +1,47 @@
 package com.example.tiendamultiverso
 
+import android.media.AudioManager
+import android.media.ToneGenerator
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import com.example.tiendamultiverso.data.Usuario
+import com.example.tiendamultiverso.ui.screens.ComunicacionAccesibleScreen
+import com.example.tiendamultiverso.ui.screens.CotizarScreen
 import com.example.tiendamultiverso.ui.screens.HomeScreen
 import com.example.tiendamultiverso.ui.screens.LoginScreen
 import com.example.tiendamultiverso.ui.screens.RecuperarPasswordScreen
 import com.example.tiendamultiverso.ui.screens.RegistroScreen
+import com.example.tiendamultiverso.ui.screens.SplashScreen
 import com.example.tiendamultiverso.ui.theme.TiendaMultiversoTheme
+import kotlinx.coroutines.delay
 
 enum class Pantalla {
+
+    SPLASH,
+
     LOGIN,
+
     REGISTRO,
+
     RECUPERAR_PASSWORD,
-    HOME
+
+    HOME,
+
+    COTIZAR,
+
+    COMUNICACION_ACCESIBLE
 }
 
 class MainActivity : ComponentActivity() {
@@ -40,7 +59,7 @@ class MainActivity : ComponentActivity() {
             TiendaMultiversoTheme {
 
                 var pantallaActual by remember {
-                    mutableStateOf(Pantalla.LOGIN)
+                    mutableStateOf(Pantalla.SPLASH)
                 }
 
                 var usuarioActual by remember {
@@ -61,15 +80,35 @@ class MainActivity : ComponentActivity() {
 
                 when (pantallaActual) {
 
+
+                    Pantalla.SPLASH -> {
+
+                        LaunchedEffect(Unit) {
+
+                            delay(2000)
+
+                            pantallaActual =
+                                Pantalla.LOGIN
+                        }
+
+                        SplashScreen()
+                    }
+
+
                     Pantalla.LOGIN -> {
 
                         LoginScreen(
 
                             onLoginCorrecto = { usuario ->
 
-                                usuarioPendiente = usuario
+                                usuarioPendiente =
+                                    usuario
 
-                                mostrarDialogoLogin = true
+
+                                reproducirDoblePitido()
+
+                                mostrarDialogoLogin =
+                                    true
                             },
 
                             onRegistroClick = {
@@ -86,13 +125,15 @@ class MainActivity : ComponentActivity() {
                         )
                     }
 
+
                     Pantalla.REGISTRO -> {
 
                         RegistroScreen(
 
                             onRegistroExitoso = {
 
-                                mostrarDialogoRegistro = true
+                                mostrarDialogoRegistro =
+                                    true
                             },
 
                             onVolverLogin = {
@@ -102,6 +143,7 @@ class MainActivity : ComponentActivity() {
                             }
                         )
                     }
+
 
                     Pantalla.RECUPERAR_PASSWORD -> {
 
@@ -115,24 +157,66 @@ class MainActivity : ComponentActivity() {
                         )
                     }
 
+
                     Pantalla.HOME -> {
 
                         usuarioActual?.let { usuario ->
 
                             HomeScreen(
+
                                 usuario = usuario,
 
                                 onCerrarSesion = {
 
-                                    usuarioActual = null
+                                    usuarioActual =
+                                        null
 
                                     pantallaActual =
                                         Pantalla.LOGIN
+                                },
+
+                                onCotizarClick = {
+
+                                    pantallaActual =
+                                        Pantalla.COTIZAR
+                                },
+
+                                onComunicacionClick = {
+
+                                    pantallaActual =
+                                        Pantalla.COMUNICACION_ACCESIBLE
                                 }
                             )
                         }
                     }
+
+
+                    Pantalla.COTIZAR -> {
+
+                        CotizarScreen(
+
+                            onVolver = {
+
+                                pantallaActual =
+                                    Pantalla.HOME
+                            }
+                        )
+                    }
+
+
+                    Pantalla.COMUNICACION_ACCESIBLE -> {
+
+                        ComunicacionAccesibleScreen(
+
+                            onVolver = {
+
+                                pantallaActual =
+                                    Pantalla.HOME
+                            }
+                        )
+                    }
                 }
+
 
                 if (
                     mostrarDialogoLogin &&
@@ -142,7 +226,9 @@ class MainActivity : ComponentActivity() {
                     AlertDialog(
 
                         onDismissRequest = {
-                            mostrarDialogoLogin = false
+
+                            mostrarDialogoLogin =
+                                false
                         },
 
                         title = {
@@ -190,6 +276,7 @@ class MainActivity : ComponentActivity() {
                     )
                 }
 
+
                 if (mostrarDialogoRegistro) {
 
                     AlertDialog(
@@ -199,7 +286,8 @@ class MainActivity : ComponentActivity() {
                         title = {
 
                             Text(
-                                text = "¡Cuenta creada!"
+                                text =
+                                    "¡Cuenta creada!"
                             )
                         },
 
@@ -207,9 +295,8 @@ class MainActivity : ComponentActivity() {
 
                             Text(
                                 text =
-                                    "Tu usuario fue registrado " +
-                                            "correctamente. Ahora puedes " +
-                                            "iniciar sesión."
+                                    "Tu usuario fue registrado correctamente. " +
+                                            "Ahora puedes iniciar sesión."
                             )
                         },
 
@@ -236,5 +323,46 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+
+    private fun reproducirDoblePitido() {
+
+        val toneGenerator =
+            ToneGenerator(
+                AudioManager.STREAM_NOTIFICATION,
+                100
+            )
+
+        val handler =
+            Handler(
+                Looper.getMainLooper()
+            )
+
+        toneGenerator.startTone(
+            ToneGenerator.TONE_PROP_BEEP,
+            180
+        )
+
+        handler.postDelayed(
+            {
+
+                toneGenerator.startTone(
+                    ToneGenerator.TONE_PROP_BEEP,
+                    180
+                )
+
+            },
+            320
+        )
+
+        handler.postDelayed(
+            {
+
+                toneGenerator.release()
+
+            },
+            700
+        )
     }
 }

@@ -4,8 +4,8 @@ data class Figura(
     val id: Int,
     val nombre: String,
     val linea: String,
+    val categoria: String,
     val precio: Int,
-    val stock: Int,
-    val imagen: Int? = null
+    val stock: Int
 )
 

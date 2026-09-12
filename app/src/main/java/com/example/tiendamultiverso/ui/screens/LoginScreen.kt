@@ -1,16 +1,15 @@
 package com.example.tiendamultiverso.ui.screens
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -23,24 +22,25 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.tiendamultiverso.R
 import com.example.tiendamultiverso.data.Usuario
 import com.example.tiendamultiverso.data.UsuarioRepository
-import androidx.compose.foundation.layout.padding
 
 @Composable
 fun LoginScreen(
-    onLoginCorrecto: (Usuario) -> Unit = {},
-    onRegistroClick: () -> Unit = {},
-    onRecuperarPasswordClick: () -> Unit = {}
+    onLoginCorrecto: (Usuario) -> Unit,
+    onRegistroClick: () -> Unit,
+    onRecuperarPasswordClick: () -> Unit
 ) {
 
-    var usuario by remember {
+    var usuarioCorreo by remember {
         mutableStateOf("")
     }
 
@@ -55,75 +55,68 @@ fun LoginScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(24.dp),
+            .verticalScroll(
+                rememberScrollState()
+            )
+            .padding(horizontal = 30.dp),
 
-        horizontalAlignment = Alignment.CenterHorizontally,
-
-        verticalArrangement = Arrangement.Center
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
+        Spacer(
+            modifier = Modifier.height(110.dp)
+        )
+
         /*
-         * LOGO
-         * Círculo rojo con una M blanca.
-         * No necesita imágenes ni archivos drawable.
+         * LOGO TIENDA MULTIVERSO
          */
-        Box(
-            modifier = Modifier
-                .size(92.dp)
-                .background(
-                    color = MaterialTheme.colorScheme.primary,
-                    shape = CircleShape
-                ),
+        Image(
+            painter = painterResource(
+                id = R.drawable.icono_multiverso
+            ),
 
-            contentAlignment = Alignment.Center
-        ) {
+            contentDescription = "Logo de Tienda Multiverso",
 
-            Text(
-                text = "M",
-                color = Color.White,
-                fontSize = 48.sp,
-                fontWeight = FontWeight.Black
-            )
-        }
+            modifier = Modifier.size(150.dp),
+
+            contentScale = ContentScale.Fit
+        )
 
         Spacer(
-            modifier = Modifier.height(18.dp)
+            modifier = Modifier.height(12.dp)
         )
 
         Text(
             text = "Tienda Multiverso",
             fontSize = 30.sp,
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary
+            color = MaterialTheme.colorScheme.primary,
+            textAlign = TextAlign.Center
         )
 
         Spacer(
-            modifier = Modifier.height(8.dp)
+            modifier = Modifier.height(6.dp)
         )
 
         Text(
             text = "Tu universo de figuras comienza aquí",
-            fontSize = 16.sp
+            fontSize = 16.sp,
+            textAlign = TextAlign.Center
         )
 
         Spacer(
-            modifier = Modifier.height(32.dp)
+            modifier = Modifier.height(36.dp)
         )
 
         OutlinedTextField(
-            value = usuario,
+            value = usuarioCorreo,
 
             onValueChange = {
-
-                usuario = it
-
+                usuarioCorreo = it
                 mensajeError = ""
             },
 
-            modifier = Modifier.fillMaxWidth(),
-
             label = {
-
                 Text(
                     text = "Usuario o correo"
                 )
@@ -131,29 +124,22 @@ fun LoginScreen(
 
             singleLine = true,
 
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Email
-            )
+            modifier = Modifier.fillMaxWidth()
         )
 
         Spacer(
-            modifier = Modifier.height(16.dp)
+            modifier = Modifier.height(14.dp)
         )
 
         OutlinedTextField(
             value = password,
 
             onValueChange = {
-
                 password = it
-
                 mensajeError = ""
             },
 
-            modifier = Modifier.fillMaxWidth(),
-
             label = {
-
                 Text(
                     text = "Contraseña"
                 )
@@ -164,53 +150,38 @@ fun LoginScreen(
             visualTransformation =
                 PasswordVisualTransformation(),
 
-            keyboardOptions =
-                KeyboardOptions(
-                    keyboardType =
-                        KeyboardType.Password
-                )
-        )
-
-        Spacer(
-            modifier = Modifier.height(12.dp)
+            modifier = Modifier.fillMaxWidth()
         )
 
         if (mensajeError.isNotEmpty()) {
 
-            Text(
-                text = mensajeError,
-                color = MaterialTheme.colorScheme.error
-            )
-
             Spacer(
                 modifier = Modifier.height(8.dp)
             )
+
+            Text(
+                text = mensajeError,
+                color = MaterialTheme.colorScheme.error,
+                fontSize = 14.sp,
+                textAlign = TextAlign.Center
+            )
         }
 
+        Spacer(
+            modifier = Modifier.height(16.dp)
+        )
+
         Button(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(52.dp),
 
             onClick = {
 
-                if (
-                    usuario.isBlank() ||
-                    password.isBlank()
-                ) {
-
-                    mensajeError =
-                        "Debes completar usuario y contraseña"
-
-                    return@Button
-                }
-
                 val usuarioEncontrado =
                     UsuarioRepository.validarLogin(
-
-                        usuario =
-                            usuario.trim(),
-
-                        password =
-                            password
+                        usuario = usuarioCorreo.trim(),
+                        password = password
                     )
 
                 if (usuarioEncontrado != null) {
@@ -230,17 +201,18 @@ fun LoginScreen(
         ) {
 
             Text(
-                text = "Iniciar sesión"
+                text = "Iniciar sesión",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.SemiBold
             )
         }
 
         Spacer(
-            modifier = Modifier.height(8.dp)
+            modifier = Modifier.height(14.dp)
         )
 
         TextButton(
-            onClick =
-                onRecuperarPasswordClick
+            onClick = onRecuperarPasswordClick
         ) {
 
             Text(
@@ -249,13 +221,16 @@ fun LoginScreen(
         }
 
         TextButton(
-            onClick =
-                onRegistroClick
+            onClick = onRegistroClick
         ) {
 
             Text(
                 text = "¿No tienes cuenta? Regístrate"
             )
         }
+
+        Spacer(
+            modifier = Modifier.height(30.dp)
+        )
     }
 }

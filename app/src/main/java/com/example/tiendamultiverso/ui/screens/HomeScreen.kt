@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -49,7 +50,9 @@ import kotlinx.coroutines.launch
 @Composable
 fun HomeScreen(
     usuario: Usuario,
-    onCerrarSesion: () -> Unit = {}
+    onCerrarSesion: () -> Unit = {},
+    onCotizarClick: () -> Unit = {},
+    onComunicacionClick: () -> Unit = {}
 ) {
 
     val drawerState = rememberDrawerState(
@@ -71,6 +74,7 @@ fun HomeScreen(
     }
 
     ModalNavigationDrawer(
+
         drawerState = drawerState,
 
         drawerContent = {
@@ -126,6 +130,7 @@ fun HomeScreen(
                     modifier = Modifier.height(12.dp)
                 )
 
+
                 TextButton(
                     modifier = Modifier.fillMaxWidth(),
 
@@ -143,8 +148,30 @@ fun HomeScreen(
                         color = MaterialTheme.colorScheme.onSurface
                     )
                 }
+
+
+                TextButton(
+                    modifier = Modifier.fillMaxWidth(),
+
+                    onClick = {
+
+                        scope.launch {
+                            drawerState.close()
+                        }
+
+                        onCotizarClick()
+                    }
+                ) {
+
+                    Text(
+                        text = "Cotizar figuras",
+                        modifier = Modifier.fillMaxWidth(),
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
             }
         }
+
     ) {
 
         Scaffold(
@@ -239,9 +266,8 @@ fun HomeScreen(
 
                                         Text(
                                             text = "Cerrar sesión",
-                                            color = MaterialTheme
-                                                .colorScheme
-                                                .primary
+                                            color =
+                                                MaterialTheme.colorScheme.primary
                                         )
                                     },
 
@@ -255,14 +281,15 @@ fun HomeScreen(
                         }
                     },
 
-                    colors = TopAppBarDefaults.topAppBarColors(
+                    colors =
+                        TopAppBarDefaults.topAppBarColors(
 
-                        containerColor =
-                            MaterialTheme.colorScheme.primary,
+                            containerColor =
+                                MaterialTheme.colorScheme.primary,
 
-                        titleContentColor =
-                            MaterialTheme.colorScheme.onPrimary
-                    )
+                            titleContentColor =
+                                MaterialTheme.colorScheme.onPrimary
+                        )
                 )
             }
 
@@ -360,6 +387,28 @@ fun HomeScreen(
                     modifier = Modifier.height(16.dp)
                 )
 
+
+                Button(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .sizeIn(
+                            minHeight = 56.dp
+                        ),
+
+                    onClick = onComunicacionClick
+                ) {
+
+                    Text(
+                        text = "Comunicación accesible",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+
+                Spacer(
+                    modifier = Modifier.height(10.dp)
+                )
+
                 Button(
                     modifier = Modifier.fillMaxWidth(),
                     onClick = onCerrarSesion
@@ -377,6 +426,7 @@ fun HomeScreen(
         }
     }
 
+
     if (mostrarPerfil) {
 
         AlertDialog(
@@ -386,7 +436,6 @@ fun HomeScreen(
             },
 
             title = {
-
                 Text(
                     text = "Mi perfil"
                 )
@@ -437,6 +486,7 @@ fun HomeScreen(
         )
     }
 
+
     if (mostrarAcercaDe) {
 
         AlertDialog(
@@ -446,7 +496,6 @@ fun HomeScreen(
             },
 
             title = {
-
                 Text(
                     text = "Acerca de"
                 )
@@ -457,9 +506,9 @@ fun HomeScreen(
                 Text(
                     text =
                         "Tienda Multiverso\n\n" +
-                                "Aplicación móvil para visualizar " +
-                                "figuras coleccionables articuladas.\n\n" +
-                                "Versión 1.0"
+                                "Un espacio creado para fans del universo Marvel.\n\n" +
+                                "Aquí podrás descubrir figuras de tus personajes favoritos, " +
+                                "cotizar productos y realizar compras de forma cómoda y simple."
                 )
             },
 

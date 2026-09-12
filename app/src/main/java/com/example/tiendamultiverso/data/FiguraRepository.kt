@@ -8,6 +8,7 @@ object FiguraRepository {
             id = 1,
             nombre = "Spider-Man",
             linea = "Marvel Legends",
+            categoria = "Héroe",
             precio = 29990,
             stock = 8
         ),
@@ -16,6 +17,7 @@ object FiguraRepository {
             id = 2,
             nombre = "Venom",
             linea = "Marvel Legends",
+            categoria = "Villano",
             precio = 34990,
             stock = 5
         ),
@@ -24,6 +26,7 @@ object FiguraRepository {
             id = 3,
             nombre = "Wolverine",
             linea = "Marvel Legends",
+            categoria = "Héroe",
             precio = 32990,
             stock = 6
         ),
@@ -32,6 +35,7 @@ object FiguraRepository {
             id = 4,
             nombre = "Deadpool",
             linea = "Marvel Legends",
+            categoria = "Antihéroe",
             precio = 31990,
             stock = 4
         ),
@@ -40,6 +44,7 @@ object FiguraRepository {
             id = 5,
             nombre = "Iron Man",
             linea = "Marvel Legends",
+            categoria = "Héroe",
             precio = 36990,
             stock = 7
         ),
@@ -48,9 +53,9 @@ object FiguraRepository {
             id = 6,
             nombre = "Hulk",
             linea = "Marvel Legends",
+            categoria = "Héroe",
             precio = 39990,
             stock = 3
         )
     )
 }
-

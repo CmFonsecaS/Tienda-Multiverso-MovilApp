@@ -2,7 +2,7 @@ package com.example.tiendamultiverso.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val MultiversoRed = Color(0xFFC62828)
+val MultiversoRed = Color(0xFFC22424)
 val MultiversoDarkRed = Color(0xFF8E0000)
 val MultiversoLightRed = Color(0xFFFFEBEE)
 
