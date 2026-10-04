@@ -1,4 +1,3 @@
-
 package com.example.tiendamultiverso.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
@@ -19,6 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -28,6 +28,10 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.tiendamultiverso.data.UsuarioRepository
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @Composable
 fun RecuperarPasswordScreen(
@@ -35,6 +39,7 @@ fun RecuperarPasswordScreen(
 ) {
 
     val contexto = LocalContext.current
+    val alcanceCorrutina = rememberCoroutineScope()
 
     var email by remember {
         mutableStateOf("")
@@ -50,6 +55,10 @@ fun RecuperarPasswordScreen(
 
     var nombreUsuario by remember {
         mutableStateOf("")
+    }
+
+    var cargando by remember {
+        mutableStateOf(false)
     }
 
     Column(
@@ -88,12 +97,11 @@ fun RecuperarPasswordScreen(
                 mensajeError = ""
             },
 
+            enabled = !cargando,
             modifier = Modifier.fillMaxWidth(),
 
             label = {
-                Text(
-                    text = "Correo electrónico"
-                )
+                Text("Correo electrónico")
             },
 
             singleLine = true,
@@ -121,42 +129,60 @@ fun RecuperarPasswordScreen(
 
         Button(
             modifier = Modifier.fillMaxWidth(),
+            enabled = !cargando,
 
             onClick = {
 
                 if (email.isBlank()) {
-
                     mensajeError =
                         "Debes ingresar tu correo electrónico."
-
                     return@Button
                 }
 
-                val usuarioEncontrado =
-                    UsuarioRepository.buscarPorEmail(
-                        context = contexto,
-                        email = email.trim()
-                    )
+                val correoIngresado = email.trim()
 
-                if (usuarioEncontrado != null) {
+                cargando = true
+                mensajeError = ""
 
-                    nombreUsuario =
-                        usuarioEncontrado.nombre
+                alcanceCorrutina.launch {
+                    try {
+                        val usuarioEncontrado =
+                            withContext(Dispatchers.IO) {
+                                UsuarioRepository.buscarPorEmail(
+                                    context = contexto,
+                                    email = correoIngresado
+                                )
+                            }
 
-                    mensajeError = ""
+                        if (usuarioEncontrado != null) {
+                            nombreUsuario = usuarioEncontrado.nombre
+                            mensajeError = ""
+                            mostrarDialogo = true
+                        } else {
+                            mensajeError =
+                                "No existe una cuenta registrada con ese correo."
+                        }
 
-                    mostrarDialogo = true
+                    } catch (e: CancellationException) {
+                        throw e
 
-                } else {
+                    } catch (e: Exception) {
+                        mensajeError =
+                            "No se pudo consultar la cuenta. Intenta nuevamente."
 
-                    mensajeError =
-                        "No existe una cuenta registrada con ese correo."
+                    } finally {
+                        cargando = false
+                    }
                 }
             }
         ) {
 
             Text(
-                text = "Recuperar contraseña"
+                text = if (cargando) {
+                    "Buscando cuenta..."
+                } else {
+                    "Recuperar contraseña"
+                }
             )
         }
 
@@ -165,27 +191,22 @@ fun RecuperarPasswordScreen(
         )
 
         TextButton(
-            onClick = onVolverLogin
+            onClick = onVolverLogin,
+            enabled = !cargando
         ) {
-
-            Text(
-                text = "Volver al inicio de sesión"
-            )
+            Text("Volver al inicio de sesión")
         }
     }
 
     if (mostrarDialogo) {
 
         AlertDialog(
-
             onDismissRequest = {
                 mostrarDialogo = false
             },
 
             title = {
-                Text(
-                    text = "Cuenta encontrada"
-                )
+                Text("Cuenta encontrada")
             },
 
             text = {
@@ -198,19 +219,13 @@ fun RecuperarPasswordScreen(
             },
 
             confirmButton = {
-
                 TextButton(
                     onClick = {
-
                         mostrarDialogo = false
-
                         onVolverLogin()
                     }
                 ) {
-
-                    Text(
-                        text = "Aceptar"
-                    )
+                    Text("Aceptar")
                 }
             }
         )

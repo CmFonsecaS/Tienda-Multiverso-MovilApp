@@ -3,6 +3,8 @@ package com.example.tiendamultiverso.data
 import android.content.Context
 import androidx.compose.runtime.mutableStateListOf
 import com.example.tiendamultiverso.data.local.TiendaDatabaseHelper
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 object FiguraRepository {
 
@@ -67,45 +69,71 @@ object FiguraRepository {
         addAll(figurasIniciales)
     }
 
-    fun inicializar(context: Context) {
+    suspend fun inicializar(context: Context) {
 
-        val preferencias = context.getSharedPreferences(
-            "catalogo_config",
-            Context.MODE_PRIVATE
-        )
+        val contexto = context.applicationContext
 
-        val baseDatos = TiendaDatabaseHelper(
-            context.applicationContext
-        )
+        // Consultamos y actualizamos SQLite en segundo plano.
+        val figurasGuardadas = withContext(Dispatchers.IO) {
 
-        try {
-            val guardadas = baseDatos.obtenerFiguras()
+            val preferencias = contexto.getSharedPreferences(
+                "catalogo_config",
+                Context.MODE_PRIVATE
+            )
 
-            if (!preferencias.getBoolean("catalogo_inicializado", false)) {
+            TiendaDatabaseHelper(contexto).use { baseDatos ->
 
-                val idsExistentes = guardadas.map { it.id }.toSet()
+                if (
+                    !preferencias.getBoolean(
+                        "catalogo_inicializado",
+                        false
+                    )
+                ) {
 
-                figurasIniciales.forEach { figura ->
-                    if (figura.id !in idsExistentes) {
-                        baseDatos.insertarFigura(figura)
+                    val guardadas =
+                        baseDatos.obtenerFiguras()
+
+                    val idsExistentes =
+                        guardadas.map { it.id }.toSet()
+
+                    figurasIniciales.forEach { figura ->
+
+                        if (figura.id !in idsExistentes) {
+                            baseDatos.insertarFigura(figura)
+                        }
+                    }
+
+                    val resultado =
+                        baseDatos.obtenerFiguras()
+
+                    val idsFinales =
+                        resultado.map { it.id }.toSet()
+
+                    if (
+                        figurasIniciales.all {
+                            it.id in idsFinales
+                        }
+                    ) {
+
+                        preferencias.edit()
+                            .putBoolean(
+                                "catalogo_inicializado",
+                                true
+                            )
+                            .apply()
                     }
                 }
 
-                val resultado = baseDatos.obtenerFiguras()
-                val idsFinales = resultado.map { it.id }.toSet()
-
-                if (figurasIniciales.all { it.id in idsFinales }) {
-                    preferencias.edit()
-                        .putBoolean("catalogo_inicializado", true)
-                        .apply()
-                }
+                // Devolvemos una lista normal.
+                baseDatos.obtenerFiguras()
             }
+        }
+
+        // Actualizamos el estado observable en Main.
+        withContext(Dispatchers.Main) {
 
             figuras.clear()
-            figuras.addAll(baseDatos.obtenerFiguras())
-
-        } finally {
-            baseDatos.close()
+            figuras.addAll(figurasGuardadas)
         }
     }
 }

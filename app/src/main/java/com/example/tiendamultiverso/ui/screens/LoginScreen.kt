@@ -1,3 +1,4 @@
+
 package com.example.tiendamultiverso.ui.screens
 
 import androidx.compose.foundation.Image
@@ -19,6 +20,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -33,6 +35,9 @@ import androidx.compose.ui.unit.sp
 import com.example.tiendamultiverso.R
 import com.example.tiendamultiverso.data.Usuario
 import com.example.tiendamultiverso.data.UsuarioRepository
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @Composable
 fun LoginScreen(
@@ -41,8 +46,8 @@ fun LoginScreen(
     onRecuperarPasswordClick: () -> Unit
 ) {
 
-    // Contexto necesario para consultar SQLite.
     val contexto = LocalContext.current
+    val alcanceCorrutina = rememberCoroutineScope()
 
     var usuarioCorreo by remember {
         mutableStateOf("")
@@ -56,12 +61,14 @@ fun LoginScreen(
         mutableStateOf("")
     }
 
+    var cargando by remember {
+        mutableStateOf(false)
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(
-                rememberScrollState()
-            )
+            .verticalScroll(rememberScrollState())
             .padding(horizontal = 30.dp),
 
         horizontalAlignment = Alignment.CenterHorizontally
@@ -71,18 +78,12 @@ fun LoginScreen(
             modifier = Modifier.height(110.dp)
         )
 
-        /*
-         * LOGO TIENDA MULTIVERSO
-         */
         Image(
             painter = painterResource(
                 id = R.drawable.icono_multiverso
             ),
-
             contentDescription = "Logo de Tienda Multiverso",
-
             modifier = Modifier.size(150.dp),
-
             contentScale = ContentScale.Fit
         )
 
@@ -112,25 +113,17 @@ fun LoginScreen(
             modifier = Modifier.height(36.dp)
         )
 
-        /*
-         * CAMPO USUARIO O CORREO
-         */
         OutlinedTextField(
             value = usuarioCorreo,
-
             onValueChange = {
                 usuarioCorreo = it
                 mensajeError = ""
             },
-
             label = {
-                Text(
-                    text = "Usuario o correo"
-                )
+                Text("Usuario o correo")
             },
-
             singleLine = true,
-
+            enabled = !cargando,
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -138,34 +131,21 @@ fun LoginScreen(
             modifier = Modifier.height(14.dp)
         )
 
-        /*
-         * CAMPO CONTRASEÑA
-         */
         OutlinedTextField(
             value = password,
-
             onValueChange = {
                 password = it
                 mensajeError = ""
             },
-
             label = {
-                Text(
-                    text = "Contraseña"
-                )
+                Text("Contraseña")
             },
-
             singleLine = true,
-
-            visualTransformation =
-                PasswordVisualTransformation(),
-
+            enabled = !cargando,
+            visualTransformation = PasswordVisualTransformation(),
             modifier = Modifier.fillMaxWidth()
         )
 
-        /*
-         * MENSAJE DE ERROR
-         */
         if (mensajeError.isNotEmpty()) {
 
             Spacer(
@@ -184,43 +164,69 @@ fun LoginScreen(
             modifier = Modifier.height(16.dp)
         )
 
-        /*
-         * BOTÓN INICIAR SESIÓN
-         */
         Button(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(52.dp),
 
+            enabled = !cargando,
+
             onClick = {
 
-                val usuarioEncontrado =
-                    UsuarioRepository.validarLogin(
-                        context = contexto,
-                        usuario = usuarioCorreo.trim(),
-                        password = password
-                    )
+                // Guardamos los valores antes de iniciar
+                // el trabajo en segundo plano.
+                val identificador = usuarioCorreo.trim()
+                val claveIngresada = password
 
-                if (usuarioEncontrado != null) {
+                cargando = true
+                mensajeError = ""
 
-                    mensajeError = ""
+                alcanceCorrutina.launch {
 
-                    // MainActivity gestiona el doble pitido,
-                    // el diálogo y la sesión del usuario.
-                    onLoginCorrecto(
-                        usuarioEncontrado
-                    )
+                    try {
 
-                } else {
+                        // SQLite y PBKDF2 se ejecutan
+                        // fuera del hilo principal.
+                        val usuarioEncontrado =
+                            withContext(Dispatchers.IO) {
 
-                    mensajeError =
-                        "Usuario o contraseña incorrectos"
+                                UsuarioRepository.validarLogin(
+                                    context = contexto,
+                                    usuario = identificador,
+                                    password = claveIngresada
+                                )
+                            }
+
+                        if (usuarioEncontrado != null) {
+
+                            mensajeError = ""
+                            onLoginCorrecto(usuarioEncontrado)
+
+                        } else {
+
+                            mensajeError =
+                                "Usuario o contraseña incorrectos"
+                        }
+
+                    } catch (e: Exception) {
+
+                        mensajeError =
+                            "No se pudo iniciar sesión. Intenta nuevamente."
+
+                    } finally {
+
+                        cargando = false
+                    }
                 }
             }
         ) {
 
             Text(
-                text = "Iniciar sesión",
+                text = if (cargando) {
+                    "Verificando..."
+                } else {
+                    "Iniciar sesión"
+                },
                 fontSize = 16.sp,
                 fontWeight = FontWeight.SemiBold
             )
@@ -230,28 +236,18 @@ fun LoginScreen(
             modifier = Modifier.height(14.dp)
         )
 
-        /*
-         * RECUPERAR CONTRASEÑA
-         */
         TextButton(
-            onClick = onRecuperarPasswordClick
+            onClick = onRecuperarPasswordClick,
+            enabled = !cargando
         ) {
-
-            Text(
-                text = "¿Olvidaste tu contraseña?"
-            )
+            Text("¿Olvidaste tu contraseña?")
         }
 
-        /*
-         * REGISTRO
-         */
         TextButton(
-            onClick = onRegistroClick
+            onClick = onRegistroClick,
+            enabled = !cargando
         ) {
-
-            Text(
-                text = "¿No tienes cuenta? Regístrate"
-            )
+            Text("¿No tienes cuenta? Regístrate")
         }
 
         Spacer(

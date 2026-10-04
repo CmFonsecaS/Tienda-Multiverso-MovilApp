@@ -14,6 +14,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.OutlinedTextField
@@ -24,6 +25,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,7 +36,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.tiendamultiverso.data.Usuario
 import com.example.tiendamultiverso.data.UsuarioRepository
-import androidx.compose.material3.ExposedDropdownMenuAnchorType
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import androidx.compose.material3.MaterialTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -44,6 +50,7 @@ fun RegistroScreen(
 ) {
 
     val contexto = LocalContext.current
+    val alcanceCorrutina = rememberCoroutineScope()
 
     var nombre by remember { mutableStateOf("") }
     var apellido by remember { mutableStateOf("") }
@@ -51,6 +58,10 @@ fun RegistroScreen(
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmarPassword by remember { mutableStateOf("") }
+
+    var cargando by remember {
+        mutableStateOf(false)
+    }
 
     // Combo Box
     val paises = listOf(
@@ -140,7 +151,8 @@ fun RegistroScreen(
                 Text("Nombre")
             },
             modifier = Modifier.fillMaxWidth(),
-            singleLine = true
+            singleLine = true,
+            enabled = !cargando
         )
 
         Spacer(
@@ -157,7 +169,8 @@ fun RegistroScreen(
                 Text("Apellido")
             },
             modifier = Modifier.fillMaxWidth(),
-            singleLine = true
+            singleLine = true,
+            enabled = !cargando
         )
 
         Spacer(
@@ -174,7 +187,8 @@ fun RegistroScreen(
                 Text("Usuario")
             },
             modifier = Modifier.fillMaxWidth(),
-            singleLine = true
+            singleLine = true,
+            enabled = !cargando
         )
 
         Spacer(
@@ -191,7 +205,8 @@ fun RegistroScreen(
                 Text("Correo electrónico")
             },
             modifier = Modifier.fillMaxWidth(),
-            singleLine = true
+            singleLine = true,
+            enabled = !cargando
         )
 
         Spacer(
@@ -209,7 +224,8 @@ fun RegistroScreen(
             },
             visualTransformation = PasswordVisualTransformation(),
             modifier = Modifier.fillMaxWidth(),
-            singleLine = true
+            singleLine = true,
+            enabled = !cargando
         )
 
         Spacer(
@@ -227,7 +243,8 @@ fun RegistroScreen(
             },
             visualTransformation = PasswordVisualTransformation(),
             modifier = Modifier.fillMaxWidth(),
-            singleLine = true
+            singleLine = true,
+            enabled = !cargando
         )
 
         Spacer(
@@ -246,7 +263,9 @@ fun RegistroScreen(
         ExposedDropdownMenuBox(
             expanded = menuExpandido,
             onExpandedChange = {
-                menuExpandido = !menuExpandido
+                if (!cargando) {
+                    menuExpandido = !menuExpandido
+                }
             }
         ) {
 
@@ -254,6 +273,7 @@ fun RegistroScreen(
                 value = paisSeleccionado,
                 onValueChange = {},
                 readOnly = true,
+                enabled = !cargando,
                 label = {
                     Text("Selecciona tu país")
                 },
@@ -265,13 +285,13 @@ fun RegistroScreen(
                 modifier = Modifier
                     .menuAnchor(
                         type = ExposedDropdownMenuAnchorType.PrimaryNotEditable,
-                        enabled = true
+                        enabled = !cargando
                     )
                     .fillMaxWidth()
             )
 
             ExposedDropdownMenu(
-                expanded = menuExpandido,
+                expanded = menuExpandido && !cargando,
                 onDismissRequest = {
                     menuExpandido = false
                 }
@@ -311,7 +331,8 @@ fun RegistroScreen(
                     selected = tipoSeleccionado == tipo,
                     onClick = {
                         tipoSeleccionado = tipo
-                    }
+                    },
+                    enabled = !cargando
                 )
 
                 Text(
@@ -332,6 +353,7 @@ fun RegistroScreen(
         InteresCheckbox(
             texto = "Marvel Legends",
             checked = marvelLegends,
+            enabled = !cargando,
             onCheckedChange = {
                 marvelLegends = it
             }
@@ -340,6 +362,7 @@ fun RegistroScreen(
         InteresCheckbox(
             texto = "Figuras retro",
             checked = figurasRetro,
+            enabled = !cargando,
             onCheckedChange = {
                 figurasRetro = it
             }
@@ -348,6 +371,7 @@ fun RegistroScreen(
         InteresCheckbox(
             texto = "Figuras exclusivas",
             checked = figurasExclusivas,
+            enabled = !cargando,
             onCheckedChange = {
                 figurasExclusivas = it
             }
@@ -356,6 +380,7 @@ fun RegistroScreen(
         InteresCheckbox(
             texto = "Ediciones especiales",
             checked = edicionesEspeciales,
+            enabled = !cargando,
             onCheckedChange = {
                 edicionesEspeciales = it
             }
@@ -374,7 +399,8 @@ fun RegistroScreen(
                 onCheckedChange = {
                     aceptaTerminos = it
                     mensaje = ""
-                }
+                },
+                enabled = !cargando
             )
 
             Text(
@@ -389,7 +415,8 @@ fun RegistroScreen(
             )
 
             Text(
-                text = mensaje
+                text = mensaje,
+                color = MaterialTheme.colorScheme.error
             )
         }
 
@@ -399,6 +426,8 @@ fun RegistroScreen(
 
         Button(
             modifier = Modifier.fillMaxWidth(),
+            enabled = !cargando,
+
             onClick = {
 
                 if (
@@ -435,31 +464,60 @@ fun RegistroScreen(
                     password = password
                 )
 
-                val registrado =
-                    UsuarioRepository.registrarUsuario(
-                        context = contexto,
-                        usuario = nuevoUsuario
-                    )
+                cargando = true
+                mensaje = ""
 
-                if (registrado) {
+                alcanceCorrutina.launch {
 
-                    onRegistroExitoso()
+                    try {
 
-                } else {
+                        val registrado =
+                            withContext(Dispatchers.IO) {
+                                UsuarioRepository.registrarUsuario(
+                                    context = contexto,
+                                    usuario = nuevoUsuario
+                                )
+                            }
 
-                    mensaje =
-                        "El usuario o correo ya se encuentra registrado."
+                        if (registrado) {
+
+                            onRegistroExitoso()
+
+                        } else {
+
+                            mensaje =
+                                "El usuario o correo ya se encuentra registrado."
+                        }
+
+                    } catch (e: CancellationException) {
+
+                        throw e
+
+                    } catch (e: Exception) {
+
+                        mensaje =
+                            "No se pudo completar el registro. Intenta nuevamente."
+
+                    } finally {
+
+                        cargando = false
+                    }
                 }
             }
         ) {
 
             Text(
-                text = "Crear cuenta"
+                text = if (cargando) {
+                    "Registrando..."
+                } else {
+                    "Crear cuenta"
+                }
             )
         }
 
         TextButton(
             modifier = Modifier.fillMaxWidth(),
+            enabled = !cargando,
             onClick = onVolverLogin
         ) {
 
@@ -478,6 +536,7 @@ fun RegistroScreen(
 private fun InteresCheckbox(
     texto: String,
     checked: Boolean,
+    enabled: Boolean = true,
     onCheckedChange: (Boolean) -> Unit
 ) {
 
@@ -488,6 +547,7 @@ private fun InteresCheckbox(
 
         Checkbox(
             checked = checked,
+            enabled = enabled,
             onCheckedChange = onCheckedChange
         )
 
