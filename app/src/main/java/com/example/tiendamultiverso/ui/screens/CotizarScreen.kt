@@ -1,3 +1,4 @@
+
 package com.example.tiendamultiverso.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -32,9 +34,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.tiendamultiverso.data.CalculadoraCotizacion
 import com.example.tiendamultiverso.data.Figura
 import com.example.tiendamultiverso.data.FiguraRepository
 import com.example.tiendamultiverso.data.calcularCotizacion
@@ -80,49 +82,38 @@ fun CotizarScreen(
     val figurasFiltradas = when (filtroActual) {
 
         "Héroe" -> {
-
             filtrarFiguras(
                 FiguraRepository.figuras
             ) { figura ->
-
                 figura.categoria == "Héroe"
             }
         }
 
         "Villano" -> {
-
             filtrarFiguras(
                 FiguraRepository.figuras
             ) { figura ->
-
                 figura.categoria == "Villano"
             }
         }
 
         "Antihéroe" -> {
-
             filtrarFiguras(
                 FiguraRepository.figuras
             ) { figura ->
-
                 figura.categoria == "Antihéroe"
             }
         }
 
         else -> {
-
             FiguraRepository.figuras
         }
     }
 
     Scaffold(
-
         topBar = {
-
             TopAppBar(
-
                 title = {
-
                     Text(
                         text = "Cotizar figuras",
                         fontWeight = FontWeight.Bold
@@ -130,11 +121,9 @@ fun CotizarScreen(
                 },
 
                 navigationIcon = {
-
                     TextButton(
                         onClick = onVolver
                     ) {
-
                         Text(
                             text = "‹",
                             color = Color.White,
@@ -144,7 +133,6 @@ fun CotizarScreen(
                 },
 
                 colors = TopAppBarDefaults.topAppBarColors(
-
                     containerColor =
                         MaterialTheme.colorScheme.primary,
 
@@ -153,7 +141,6 @@ fun CotizarScreen(
                 )
             )
         }
-
     ) { innerPadding ->
 
         Column(
@@ -177,8 +164,9 @@ fun CotizarScreen(
             )
 
             Text(
-                text =
-                    "Selecciona una categoría, elige una figura y calcula el valor según la cantidad."
+                text = "Selecciona una categoría, " +
+                        "elige una figura y calcula el " +
+                        "valor según la cantidad."
             )
 
             Spacer(
@@ -204,12 +192,10 @@ fun CotizarScreen(
                 categorias.forEach { categoria ->
 
                     FilterChip(
-
                         selected =
                             filtroActual == categoria,
 
                         onClick = {
-
                             filtroActual = categoria
                             figuraSeleccionada = null
                             total = null
@@ -218,7 +204,6 @@ fun CotizarScreen(
                         },
 
                         label = {
-
                             Text(
                                 text = categoria
                             )
@@ -236,9 +221,7 @@ fun CotizarScreen(
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(
-                            vertical = 6.dp
-                        )
+                        .padding(vertical = 6.dp)
                 ) {
 
                     Column(
@@ -266,8 +249,7 @@ fun CotizarScreen(
                         )
 
                         Text(
-                            text =
-                                "Stock: ${figura.stock}"
+                            text = "Stock: ${figura.stock}"
                         )
 
                         Spacer(
@@ -275,26 +257,17 @@ fun CotizarScreen(
                         )
 
                         OutlinedButton(
-
-                            modifier =
-                                Modifier.sizeIn(
-                                    minHeight = 48.dp
-                                ),
+                            modifier = Modifier.sizeIn(
+                                minHeight = 48.dp
+                            ),
 
                             onClick = {
-
-                                figuraSeleccionada =
-                                    figura
-
+                                figuraSeleccionada = figura
                                 total = null
-
                                 mensajeError = ""
                             }
                         ) {
-
-                            Text(
-                                text = "Seleccionar"
-                            )
+                            Text("Seleccionar")
                         }
                     }
                 }
@@ -327,33 +300,25 @@ fun CotizarScreen(
                 )
 
                 OutlinedTextField(
-
                     value = cantidadTexto,
 
                     onValueChange = {
-
                         cantidadTexto = it
                         mensajeError = ""
                         total = null
                     },
 
-                    modifier =
-                        Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth(),
 
                     label = {
-
-                        Text(
-                            text = "Cantidad"
-                        )
+                        Text("Cantidad")
                     },
 
                     singleLine = true,
 
-                    keyboardOptions =
-                        KeyboardOptions(
-                            keyboardType =
-                                KeyboardType.Number
-                        )
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Number
+                    )
                 )
 
                 Spacer(
@@ -363,9 +328,7 @@ fun CotizarScreen(
                 Button(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .sizeIn(
-                            minHeight = 56.dp
-                        ),
+                        .sizeIn(minHeight = 56.dp),
 
                     onClick = {
 
@@ -378,51 +341,63 @@ fun CotizarScreen(
                                 cantidadTexto.toInt()
 
                             if (cantidad <= 0) {
-
                                 throw IllegalArgumentException(
                                     "La cantidad debe ser mayor que cero."
                                 )
                             }
 
-                            if (
-                                cantidad >
-                                figura.stock
-                            ) {
-
+                            if (cantidad > figura.stock) {
                                 throw IllegalArgumentException(
                                     "La cantidad supera el stock disponible."
                                 )
                             }
 
                             /*
-                             * FUNCIÓN DE ORDEN SUPERIOR + INLINE
+                             * FUNCIÓN DE ORDEN SUPERIOR + LAMBDA
                              *
-                             * La lambda define la operación
-                             * utilizada para calcular el total.
+                             * Se conserva calcularCotizacion()
+                             * y se utiliza la lógica comprobada
+                             * mediante las pruebas JUnit.
                              */
-                            total =
-                                calcularCotizacion(
-                                    figura,
-                                    cantidad
-                                ) { item, unidades ->
+                            total = calcularCotizacion(
+                                figura,
+                                cantidad
+                            ) { item, unidades ->
 
-                                    item.precio * unidades
+                                val subtotal =
+                                    CalculadoraCotizacion
+                                        .calcularSubtotal(
+                                            precioUnitario =
+                                                item.precio,
+                                            cantidad =
+                                                unidades
+                                        )
+
+                                /*
+                                 * La pantalla actual utiliza Int.
+                                 * Comprobamos que el resultado Long
+                                 * pueda representarse como Int
+                                 * antes de convertirlo.
+                                 */
+                                require(
+                                    subtotal <= Int.MAX_VALUE
+                                ) {
+                                    "El total supera el máximo permitido."
                                 }
+
+                                subtotal.toInt()
+                            }
 
                             mensajeError = ""
 
-                        } catch (
-                            e: NumberFormatException
-                        ) {
+                        } catch (_: NumberFormatException) {
 
                             mensajeError =
                                 "Ingresa una cantidad válida."
 
                             total = null
 
-                        } catch (
-                            e: IllegalArgumentException
-                        ) {
+                        } catch (e: IllegalArgumentException) {
 
                             mensajeError =
                                 e.message
@@ -438,13 +413,10 @@ fun CotizarScreen(
                     )
                 }
 
-                if (
-                    mensajeError.isNotEmpty()
-                ) {
+                if (mensajeError.isNotEmpty()) {
 
                     Spacer(
-                        modifier =
-                            Modifier.height(12.dp)
+                        modifier = Modifier.height(12.dp)
                     )
 
                     Text(
@@ -457,18 +429,15 @@ fun CotizarScreen(
                 total?.let { valorTotal ->
 
                     Spacer(
-                        modifier =
-                            Modifier.height(16.dp)
+                        modifier = Modifier.height(16.dp)
                     )
 
                     Card(
-                        modifier =
-                            Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth()
                     ) {
 
                         Column(
-                            modifier =
-                                Modifier.padding(18.dp)
+                            modifier = Modifier.padding(18.dp)
                         ) {
 
                             Text(
@@ -480,8 +449,7 @@ fun CotizarScreen(
                                 text =
                                     valorTotal.formatoPrecio(),
                                 fontSize = 28.sp,
-                                fontWeight =
-                                    FontWeight.Bold,
+                                fontWeight = FontWeight.Bold,
                                 color =
                                     MaterialTheme.colorScheme.primary
                             )
@@ -498,10 +466,7 @@ fun CotizarScreen(
                 modifier = Modifier.fillMaxWidth(),
                 onClick = onVolver
             ) {
-
-                Text(
-                    text = "Volver al Home"
-                )
+                Text("Volver al Home")
             }
 
             Spacer(

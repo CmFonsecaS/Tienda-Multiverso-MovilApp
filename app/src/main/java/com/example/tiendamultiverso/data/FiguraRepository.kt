@@ -1,8 +1,12 @@
 package com.example.tiendamultiverso.data
 
+import android.content.Context
+import androidx.compose.runtime.mutableStateListOf
+import com.example.tiendamultiverso.data.local.TiendaDatabaseHelper
+
 object FiguraRepository {
 
-    val figuras = listOf(
+    private val figurasIniciales = listOf(
 
         Figura(
             id = 1,
@@ -58,4 +62,50 @@ object FiguraRepository {
             stock = 3
         )
     )
+
+    val figuras = mutableStateListOf<Figura>().apply {
+        addAll(figurasIniciales)
+    }
+
+    fun inicializar(context: Context) {
+
+        val preferencias = context.getSharedPreferences(
+            "catalogo_config",
+            Context.MODE_PRIVATE
+        )
+
+        val baseDatos = TiendaDatabaseHelper(
+            context.applicationContext
+        )
+
+        try {
+            val guardadas = baseDatos.obtenerFiguras()
+
+            if (!preferencias.getBoolean("catalogo_inicializado", false)) {
+
+                val idsExistentes = guardadas.map { it.id }.toSet()
+
+                figurasIniciales.forEach { figura ->
+                    if (figura.id !in idsExistentes) {
+                        baseDatos.insertarFigura(figura)
+                    }
+                }
+
+                val resultado = baseDatos.obtenerFiguras()
+                val idsFinales = resultado.map { it.id }.toSet()
+
+                if (figurasIniciales.all { it.id in idsFinales }) {
+                    preferencias.edit()
+                        .putBoolean("catalogo_inicializado", true)
+                        .apply()
+                }
+            }
+
+            figuras.clear()
+            figuras.addAll(baseDatos.obtenerFiguras())
+
+        } finally {
+            baseDatos.close()
+        }
+    }
 }

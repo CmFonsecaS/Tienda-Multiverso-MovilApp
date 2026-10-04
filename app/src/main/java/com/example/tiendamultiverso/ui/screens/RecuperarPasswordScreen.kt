@@ -1,3 +1,4 @@
+
 package com.example.tiendamultiverso.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
@@ -21,6 +22,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -31,6 +33,8 @@ import com.example.tiendamultiverso.data.UsuarioRepository
 fun RecuperarPasswordScreen(
     onVolverLogin: () -> Unit = {}
 ) {
+
+    val contexto = LocalContext.current
 
     var email by remember {
         mutableStateOf("")
@@ -130,7 +134,8 @@ fun RecuperarPasswordScreen(
 
                 val usuarioEncontrado =
                     UsuarioRepository.buscarPorEmail(
-                        email.trim()
+                        context = contexto,
+                        email = email.trim()
                     )
 
                 if (usuarioEncontrado != null) {
@@ -178,14 +183,12 @@ fun RecuperarPasswordScreen(
             },
 
             title = {
-
                 Text(
                     text = "Cuenta encontrada"
                 )
             },
 
             text = {
-
                 Text(
                     text =
                         "Hola, $nombreUsuario.\n\n" +
@@ -213,4 +216,3 @@ fun RecuperarPasswordScreen(
         )
     }
 }
-

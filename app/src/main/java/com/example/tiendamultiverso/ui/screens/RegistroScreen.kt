@@ -1,6 +1,6 @@
+
 package com.example.tiendamultiverso.ui.screens
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -27,12 +27,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.tiendamultiverso.data.Usuario
 import com.example.tiendamultiverso.data.UsuarioRepository
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -40,6 +42,8 @@ fun RegistroScreen(
     onRegistroExitoso: () -> Unit = {},
     onVolverLogin: () -> Unit = {}
 ) {
+
+    val contexto = LocalContext.current
 
     var nombre by remember { mutableStateOf("") }
     var apellido by remember { mutableStateOf("") }
@@ -259,7 +263,10 @@ fun RegistroScreen(
                     )
                 },
                 modifier = Modifier
-                    .menuAnchor()
+                    .menuAnchor(
+                        type = ExposedDropdownMenuAnchorType.PrimaryNotEditable,
+                        enabled = true
+                    )
                     .fillMaxWidth()
             )
 
@@ -404,14 +411,12 @@ fun RegistroScreen(
                 ) {
 
                     mensaje = "Debes completar todos los campos."
-
                     return@Button
                 }
 
                 if (password != confirmarPassword) {
 
                     mensaje = "Las contraseñas no coinciden."
-
                     return@Button
                 }
 
@@ -419,7 +424,6 @@ fun RegistroScreen(
 
                     mensaje =
                         "Debes aceptar los términos y condiciones."
-
                     return@Button
                 }
 
@@ -433,7 +437,8 @@ fun RegistroScreen(
 
                 val registrado =
                     UsuarioRepository.registrarUsuario(
-                        nuevoUsuario
+                        context = contexto,
+                        usuario = nuevoUsuario
                     )
 
                 if (registrado) {
@@ -469,7 +474,6 @@ fun RegistroScreen(
     }
 }
 
-
 @Composable
 private fun InteresCheckbox(
     texto: String,
@@ -492,4 +496,3 @@ private fun InteresCheckbox(
         )
     }
 }
-

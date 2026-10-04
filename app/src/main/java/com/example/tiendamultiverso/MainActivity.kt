@@ -1,3 +1,4 @@
+
 package com.example.tiendamultiverso
 
 import android.media.AudioManager
@@ -16,7 +17,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import com.example.tiendamultiverso.data.FiguraRepository
 import com.example.tiendamultiverso.data.Usuario
+import com.example.tiendamultiverso.data.UsuarioRepository
+import com.example.tiendamultiverso.data.local.SesionManager
+import com.example.tiendamultiverso.ui.screens.AdministrarFigurasScreen
 import com.example.tiendamultiverso.ui.screens.ComunicacionAccesibleScreen
 import com.example.tiendamultiverso.ui.screens.CotizarScreen
 import com.example.tiendamultiverso.ui.screens.HomeScreen
@@ -26,36 +31,32 @@ import com.example.tiendamultiverso.ui.screens.RegistroScreen
 import com.example.tiendamultiverso.ui.screens.SplashScreen
 import com.example.tiendamultiverso.ui.theme.TiendaMultiversoTheme
 import kotlinx.coroutines.delay
+import kotlin.time.Duration.Companion.seconds
 
 enum class Pantalla {
-
     SPLASH,
-
     LOGIN,
-
     REGISTRO,
-
     RECUPERAR_PASSWORD,
-
     HOME,
-
     COTIZAR,
-
-    COMUNICACION_ACCESIBLE
+    COMUNICACION_ACCESIBLE,
+    ADMINISTRAR_FIGURAS
 }
 
 class MainActivity : ComponentActivity() {
 
-    override fun onCreate(
-        savedInstanceState: Bundle?
-    ) {
-
+    override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         enableEdgeToEdge()
 
-        setContent {
+        FiguraRepository.inicializar(applicationContext)
+        UsuarioRepository.inicializar(applicationContext)
 
+        val sesionManager = SesionManager(applicationContext)
+
+        setContent {
             TiendaMultiversoTheme {
 
                 var pantallaActual by remember {
@@ -80,143 +81,148 @@ class MainActivity : ComponentActivity() {
 
                 when (pantallaActual) {
 
-
                     Pantalla.SPLASH -> {
 
                         LaunchedEffect(Unit) {
+                            delay(2.seconds)
 
-                            delay(2000)
+                            val identificador =
+                                sesionManager.obtenerUsuarioActivo()
 
-                            pantallaActual =
-                                Pantalla.LOGIN
+                            if (identificador != null) {
+
+                                val usuarioGuardado =
+                                    UsuarioRepository.buscarPorUsuario(
+                                        context = applicationContext,
+                                        identificador = identificador
+                                    )
+
+                                if (usuarioGuardado != null) {
+
+                                    usuarioActual = usuarioGuardado
+                                    pantallaActual = Pantalla.HOME
+
+                                } else {
+
+                                    sesionManager.cerrarSesion()
+                                    pantallaActual = Pantalla.LOGIN
+                                }
+
+                            } else {
+
+                                pantallaActual = Pantalla.LOGIN
+                            }
                         }
 
                         SplashScreen()
                     }
 
-
                     Pantalla.LOGIN -> {
 
                         LoginScreen(
-
                             onLoginCorrecto = { usuario ->
 
-                                usuarioPendiente =
-                                    usuario
-
+                                usuarioPendiente = usuario
 
                                 reproducirDoblePitido()
 
-                                mostrarDialogoLogin =
-                                    true
+                                mostrarDialogoLogin = true
                             },
 
                             onRegistroClick = {
-
-                                pantallaActual =
-                                    Pantalla.REGISTRO
+                                pantallaActual = Pantalla.REGISTRO
                             },
 
                             onRecuperarPasswordClick = {
-
                                 pantallaActual =
                                     Pantalla.RECUPERAR_PASSWORD
                             }
                         )
                     }
 
-
                     Pantalla.REGISTRO -> {
 
                         RegistroScreen(
-
                             onRegistroExitoso = {
-
-                                mostrarDialogoRegistro =
-                                    true
+                                mostrarDialogoRegistro = true
                             },
 
                             onVolverLogin = {
-
-                                pantallaActual =
-                                    Pantalla.LOGIN
+                                pantallaActual = Pantalla.LOGIN
                             }
                         )
                     }
-
 
                     Pantalla.RECUPERAR_PASSWORD -> {
 
                         RecuperarPasswordScreen(
-
                             onVolverLogin = {
-
-                                pantallaActual =
-                                    Pantalla.LOGIN
+                                pantallaActual = Pantalla.LOGIN
                             }
                         )
                     }
-
 
                     Pantalla.HOME -> {
 
                         usuarioActual?.let { usuario ->
 
                             HomeScreen(
-
                                 usuario = usuario,
 
                                 onCerrarSesion = {
 
-                                    usuarioActual =
-                                        null
+                                    sesionManager.cerrarSesion()
 
-                                    pantallaActual =
-                                        Pantalla.LOGIN
+                                    usuarioActual = null
+                                    usuarioPendiente = null
+
+                                    pantallaActual = Pantalla.LOGIN
                                 },
 
                                 onCotizarClick = {
-
-                                    pantallaActual =
-                                        Pantalla.COTIZAR
+                                    pantallaActual = Pantalla.COTIZAR
                                 },
 
                                 onComunicacionClick = {
-
                                     pantallaActual =
                                         Pantalla.COMUNICACION_ACCESIBLE
+                                },
+
+                                onAdministrarClick = {
+                                    pantallaActual =
+                                        Pantalla.ADMINISTRAR_FIGURAS
                                 }
                             )
                         }
                     }
 
-
                     Pantalla.COTIZAR -> {
 
                         CotizarScreen(
-
                             onVolver = {
-
-                                pantallaActual =
-                                    Pantalla.HOME
+                                pantallaActual = Pantalla.HOME
                             }
                         )
                     }
-
 
                     Pantalla.COMUNICACION_ACCESIBLE -> {
 
                         ComunicacionAccesibleScreen(
-
                             onVolver = {
+                                pantallaActual = Pantalla.HOME
+                            }
+                        )
+                    }
 
-                                pantallaActual =
-                                    Pantalla.HOME
+                    Pantalla.ADMINISTRAR_FIGURAS -> {
+
+                        AdministrarFigurasScreen(
+                            onVolver = {
+                                pantallaActual = Pantalla.HOME
                             }
                         )
                     }
                 }
-
 
                 if (
                     mostrarDialogoLogin &&
@@ -224,99 +230,74 @@ class MainActivity : ComponentActivity() {
                 ) {
 
                     AlertDialog(
-
                         onDismissRequest = {
-
-                            mostrarDialogoLogin =
-                                false
+                            mostrarDialogoLogin = false
+                            usuarioPendiente = null
                         },
 
                         title = {
-
-                            Text(
-                                text =
-                                    "¡Bienvenido al Multiverso!"
-                            )
+                            Text("¡Bienvenido al Multiverso!")
                         },
 
                         text = {
-
                             Text(
-                                text =
-                                    "Inicio de sesión correcto.\n\n" +
-                                            "Hola, ${usuarioPendiente!!.nombre}."
+                                "Inicio de sesión correcto.\n\n" +
+                                        "Hola, ${usuarioPendiente!!.nombre}."
                             )
                         },
 
                         confirmButton = {
 
                             TextButton(
-
                                 onClick = {
 
-                                    usuarioActual =
-                                        usuarioPendiente
+                                    val usuario = usuarioPendiente
 
-                                    usuarioPendiente =
-                                        null
+                                    if (usuario != null) {
 
-                                    mostrarDialogoLogin =
-                                        false
+                                        sesionManager.guardarSesion(
+                                            usuario.usuario
+                                        )
 
-                                    pantallaActual =
-                                        Pantalla.HOME
+                                        usuarioActual = usuario
+                                        pantallaActual = Pantalla.HOME
+                                    }
+
+                                    usuarioPendiente = null
+                                    mostrarDialogoLogin = false
                                 }
                             ) {
-
-                                Text(
-                                    text = "Continuar"
-                                )
+                                Text("Continuar")
                             }
                         }
                     )
                 }
 
-
                 if (mostrarDialogoRegistro) {
 
                     AlertDialog(
-
                         onDismissRequest = {},
 
                         title = {
-
-                            Text(
-                                text =
-                                    "¡Cuenta creada!"
-                            )
+                            Text("¡Cuenta creada!")
                         },
 
                         text = {
-
                             Text(
-                                text =
-                                    "Tu usuario fue registrado correctamente. " +
-                                            "Ahora puedes iniciar sesión."
+                                "Tu usuario fue registrado correctamente. " +
+                                        "Ahora puedes iniciar sesión."
                             )
                         },
 
                         confirmButton = {
 
                             TextButton(
-
                                 onClick = {
-
-                                    mostrarDialogoRegistro =
-                                        false
-
-                                    pantallaActual =
-                                        Pantalla.LOGIN
+                                    mostrarDialogoRegistro = false
+                                    pantallaActual = Pantalla.LOGIN
                                 }
                             ) {
-
-                                Text(
-                                    text = "Ir al Login"
-                                )
+                                Text("Ir al Login")
                             }
                         }
                     )
@@ -325,19 +306,16 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-
     private fun reproducirDoblePitido() {
 
-        val toneGenerator =
-            ToneGenerator(
-                AudioManager.STREAM_NOTIFICATION,
-                100
-            )
+        val toneGenerator = ToneGenerator(
+            AudioManager.STREAM_NOTIFICATION,
+            100
+        )
 
-        val handler =
-            Handler(
-                Looper.getMainLooper()
-            )
+        val handler = Handler(
+            Looper.getMainLooper()
+        )
 
         toneGenerator.startTone(
             ToneGenerator.TONE_PROP_BEEP,
@@ -346,21 +324,17 @@ class MainActivity : ComponentActivity() {
 
         handler.postDelayed(
             {
-
                 toneGenerator.startTone(
                     ToneGenerator.TONE_PROP_BEEP,
                     180
                 )
-
             },
             320
         )
 
         handler.postDelayed(
             {
-
                 toneGenerator.release()
-
             },
             700
         )

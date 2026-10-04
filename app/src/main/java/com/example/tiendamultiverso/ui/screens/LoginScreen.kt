@@ -23,6 +23,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -39,6 +40,9 @@ fun LoginScreen(
     onRegistroClick: () -> Unit,
     onRecuperarPasswordClick: () -> Unit
 ) {
+
+    // Contexto necesario para consultar SQLite.
+    val contexto = LocalContext.current
 
     var usuarioCorreo by remember {
         mutableStateOf("")
@@ -108,6 +112,9 @@ fun LoginScreen(
             modifier = Modifier.height(36.dp)
         )
 
+        /*
+         * CAMPO USUARIO O CORREO
+         */
         OutlinedTextField(
             value = usuarioCorreo,
 
@@ -131,6 +138,9 @@ fun LoginScreen(
             modifier = Modifier.height(14.dp)
         )
 
+        /*
+         * CAMPO CONTRASEÑA
+         */
         OutlinedTextField(
             value = password,
 
@@ -153,6 +163,9 @@ fun LoginScreen(
             modifier = Modifier.fillMaxWidth()
         )
 
+        /*
+         * MENSAJE DE ERROR
+         */
         if (mensajeError.isNotEmpty()) {
 
             Spacer(
@@ -171,6 +184,9 @@ fun LoginScreen(
             modifier = Modifier.height(16.dp)
         )
 
+        /*
+         * BOTÓN INICIAR SESIÓN
+         */
         Button(
             modifier = Modifier
                 .fillMaxWidth()
@@ -180,6 +196,7 @@ fun LoginScreen(
 
                 val usuarioEncontrado =
                     UsuarioRepository.validarLogin(
+                        context = contexto,
                         usuario = usuarioCorreo.trim(),
                         password = password
                     )
@@ -188,6 +205,8 @@ fun LoginScreen(
 
                     mensajeError = ""
 
+                    // MainActivity gestiona el doble pitido,
+                    // el diálogo y la sesión del usuario.
                     onLoginCorrecto(
                         usuarioEncontrado
                     )
@@ -211,6 +230,9 @@ fun LoginScreen(
             modifier = Modifier.height(14.dp)
         )
 
+        /*
+         * RECUPERAR CONTRASEÑA
+         */
         TextButton(
             onClick = onRecuperarPasswordClick
         ) {
@@ -220,6 +242,9 @@ fun LoginScreen(
             )
         }
 
+        /*
+         * REGISTRO
+         */
         TextButton(
             onClick = onRegistroClick
         ) {
