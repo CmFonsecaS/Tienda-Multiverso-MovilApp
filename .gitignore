@@ -13,3 +13,11 @@
 .externalNativeBuild
 .cxx
 local.properties
+# Preferencias locales de Android Studio
+.idea/androidTestResultsUserPreferences.xml
+.idea/deploymentTargetSelector.xml
+
+# Archivos privados de firma
+*.jks
+*.keystore
+key.properties

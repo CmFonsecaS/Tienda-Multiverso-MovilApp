@@ -1,3 +1,4 @@
+
 package com.example.tiendamultiverso.ui.screens
 
 import androidx.compose.foundation.layout.Column
@@ -52,7 +53,8 @@ fun HomeScreen(
     usuario: Usuario,
     onCerrarSesion: () -> Unit = {},
     onCotizarClick: () -> Unit = {},
-    onComunicacionClick: () -> Unit = {}
+    onComunicacionClick: () -> Unit = {},
+    onAdministrarClick: () -> Unit = {}
 ) {
 
     val drawerState = rememberDrawerState(
@@ -74,9 +76,7 @@ fun HomeScreen(
     }
 
     ModalNavigationDrawer(
-
         drawerState = drawerState,
-
         drawerContent = {
 
             ModalDrawerSheet(
@@ -130,18 +130,14 @@ fun HomeScreen(
                     modifier = Modifier.height(12.dp)
                 )
 
-
                 TextButton(
                     modifier = Modifier.fillMaxWidth(),
-
                     onClick = {
-
                         scope.launch {
                             drawerState.close()
                         }
                     }
                 ) {
-
                     Text(
                         text = "Catálogo",
                         modifier = Modifier.fillMaxWidth(),
@@ -149,12 +145,9 @@ fun HomeScreen(
                     )
                 }
 
-
                 TextButton(
                     modifier = Modifier.fillMaxWidth(),
-
                     onClick = {
-
                         scope.launch {
                             drawerState.close()
                         }
@@ -162,26 +155,38 @@ fun HomeScreen(
                         onCotizarClick()
                     }
                 ) {
-
                     Text(
                         text = "Cotizar figuras",
                         modifier = Modifier.fillMaxWidth(),
                         color = MaterialTheme.colorScheme.onSurface
                     )
                 }
+
+                TextButton(
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = {
+                        scope.launch {
+                            drawerState.close()
+                        }
+
+                        onAdministrarClick()
+                    }
+                ) {
+                    Text(
+                        text = "Administrar figuras",
+                        modifier = Modifier.fillMaxWidth(),
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
             }
         }
-
     ) {
 
         Scaffold(
-
             topBar = {
 
                 TopAppBar(
-
                     title = {
-
                         Text(
                             text = "Tienda Multiverso",
                             fontWeight = FontWeight.Bold
@@ -189,16 +194,13 @@ fun HomeScreen(
                     },
 
                     navigationIcon = {
-
                         TextButton(
                             onClick = {
-
                                 scope.launch {
                                     drawerState.open()
                                 }
                             }
                         ) {
-
                             Text(
                                 text = "☰",
                                 color = Color.White,
@@ -209,7 +211,6 @@ fun HomeScreen(
                     },
 
                     actions = {
-
                         Column {
 
                             TextButton(
@@ -217,7 +218,6 @@ fun HomeScreen(
                                     mostrarMenuOpciones = true
                                 }
                             ) {
-
                                 Text(
                                     text = "⋮",
                                     color = Color.White,
@@ -228,51 +228,40 @@ fun HomeScreen(
 
                             DropdownMenu(
                                 expanded = mostrarMenuOpciones,
-
                                 onDismissRequest = {
                                     mostrarMenuOpciones = false
                                 }
                             ) {
 
                                 DropdownMenuItem(
-
                                     text = {
                                         Text("Mi perfil")
                                     },
-
                                     onClick = {
-
                                         mostrarMenuOpciones = false
                                         mostrarPerfil = true
                                     }
                                 )
 
                                 DropdownMenuItem(
-
                                     text = {
                                         Text("Acerca de")
                                     },
-
                                     onClick = {
-
                                         mostrarMenuOpciones = false
                                         mostrarAcercaDe = true
                                     }
                                 )
 
                                 DropdownMenuItem(
-
                                     text = {
-
                                         Text(
                                             text = "Cerrar sesión",
                                             color =
                                                 MaterialTheme.colorScheme.primary
                                         )
                                     },
-
                                     onClick = {
-
                                         mostrarMenuOpciones = false
                                         onCerrarSesion()
                                     }
@@ -283,16 +272,13 @@ fun HomeScreen(
 
                     colors =
                         TopAppBarDefaults.topAppBarColors(
-
                             containerColor =
                                 MaterialTheme.colorScheme.primary,
-
                             titleContentColor =
                                 MaterialTheme.colorScheme.onPrimary
                         )
                 )
             }
-
         ) { innerPadding ->
 
             Column(
@@ -309,7 +295,6 @@ fun HomeScreen(
                 Card(
                     modifier = Modifier.fillMaxWidth()
                 ) {
-
                     Column(
                         modifier = Modifier.padding(16.dp)
                     ) {
@@ -320,8 +305,7 @@ fun HomeScreen(
                         )
 
                         Text(
-                            text =
-                                "${usuario.nombre} ${usuario.apellido}",
+                            text = "${usuario.nombre} ${usuario.apellido}",
                             fontSize = 22.sp,
                             fontWeight = FontWeight.Bold
                         )
@@ -344,7 +328,6 @@ fun HomeScreen(
 
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(2),
-
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(280.dp)
@@ -387,17 +370,14 @@ fun HomeScreen(
                     modifier = Modifier.height(16.dp)
                 )
 
-
                 Button(
                     modifier = Modifier
                         .fillMaxWidth()
                         .sizeIn(
                             minHeight = 56.dp
                         ),
-
                     onClick = onComunicacionClick
                 ) {
-
                     Text(
                         text = "Comunicación accesible",
                         fontSize = 16.sp,
@@ -413,7 +393,6 @@ fun HomeScreen(
                     modifier = Modifier.fillMaxWidth(),
                     onClick = onCerrarSesion
                 ) {
-
                     Text(
                         text = "Cerrar sesión"
                     )
@@ -426,11 +405,9 @@ fun HomeScreen(
         }
     }
 
-
     if (mostrarPerfil) {
 
         AlertDialog(
-
             onDismissRequest = {
                 mostrarPerfil = false
             },
@@ -442,7 +419,6 @@ fun HomeScreen(
             },
 
             text = {
-
                 Column {
 
                     Text(
@@ -455,8 +431,7 @@ fun HomeScreen(
                     )
 
                     Text(
-                        text =
-                            "Usuario: ${usuario.usuario}"
+                        text = "Usuario: ${usuario.usuario}"
                     )
 
                     Spacer(
@@ -464,20 +439,17 @@ fun HomeScreen(
                     )
 
                     Text(
-                        text =
-                            "Correo: ${usuario.email}"
+                        text = "Correo: ${usuario.email}"
                     )
                 }
             },
 
             confirmButton = {
-
                 TextButton(
                     onClick = {
                         mostrarPerfil = false
                     }
                 ) {
-
                     Text(
                         text = "Cerrar"
                     )
@@ -486,11 +458,9 @@ fun HomeScreen(
         )
     }
 
-
     if (mostrarAcercaDe) {
 
         AlertDialog(
-
             onDismissRequest = {
                 mostrarAcercaDe = false
             },
@@ -502,7 +472,6 @@ fun HomeScreen(
             },
 
             text = {
-
                 Text(
                     text =
                         "Tienda Multiverso\n\n" +
@@ -513,13 +482,11 @@ fun HomeScreen(
             },
 
             confirmButton = {
-
                 TextButton(
                     onClick = {
                         mostrarAcercaDe = false
                     }
                 ) {
-
                     Text(
                         text = "Aceptar"
                     )

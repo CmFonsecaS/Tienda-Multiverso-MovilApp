@@ -1,4 +1,3 @@
-
 # 🦸 Tienda Multiverso
 
 Aplicación móvil Android desarrollada en **Kotlin y Jetpack Compose** como proyecto académico de la carrera Ingeniería en Desarrollo de Software de Duoc UC.

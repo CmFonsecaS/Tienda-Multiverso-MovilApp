@@ -1,8 +1,14 @@
 package com.example.tiendamultiverso.data
 
+import android.content.Context
+import androidx.compose.runtime.mutableStateListOf
+import com.example.tiendamultiverso.data.local.TiendaDatabaseHelper
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+
 object FiguraRepository {
 
-    val figuras = listOf(
+    private val figurasIniciales = listOf(
 
         Figura(
             id = 1,
@@ -58,4 +64,76 @@ object FiguraRepository {
             stock = 3
         )
     )
+
+    val figuras = mutableStateListOf<Figura>().apply {
+        addAll(figurasIniciales)
+    }
+
+    suspend fun inicializar(context: Context) {
+
+        val contexto = context.applicationContext
+
+        // Consultamos y actualizamos SQLite en segundo plano.
+        val figurasGuardadas = withContext(Dispatchers.IO) {
+
+            val preferencias = contexto.getSharedPreferences(
+                "catalogo_config",
+                Context.MODE_PRIVATE
+            )
+
+            TiendaDatabaseHelper(contexto).use { baseDatos ->
+
+                if (
+                    !preferencias.getBoolean(
+                        "catalogo_inicializado",
+                        false
+                    )
+                ) {
+
+                    val guardadas =
+                        baseDatos.obtenerFiguras()
+
+                    val idsExistentes =
+                        guardadas.map { it.id }.toSet()
+
+                    figurasIniciales.forEach { figura ->
+
+                        if (figura.id !in idsExistentes) {
+                            baseDatos.insertarFigura(figura)
+                        }
+                    }
+
+                    val resultado =
+                        baseDatos.obtenerFiguras()
+
+                    val idsFinales =
+                        resultado.map { it.id }.toSet()
+
+                    if (
+                        figurasIniciales.all {
+                            it.id in idsFinales
+                        }
+                    ) {
+
+                        preferencias.edit()
+                            .putBoolean(
+                                "catalogo_inicializado",
+                                true
+                            )
+                            .apply()
+                    }
+                }
+
+                // Devolvemos una lista normal.
+                baseDatos.obtenerFiguras()
+            }
+        }
+
+        // Actualizamos el estado observable en Main.
+        withContext(Dispatchers.Main) {
+
+            figuras.clear()
+            figuras.addAll(figurasGuardadas)
+        }
+    }
 }
